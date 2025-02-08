@@ -4,4 +4,4 @@ We want to produce a system prompt for gpt 3.5 for a chat agent that acts as a t
 
 Route one: the "Generate" functionality within OpenAI Playground (https://platform.openai.com/playground) under "gpt-4o" model
 Route two: ask gtp-o1-preview to write the system prompt
-Testing of the prompts with different Web AI Assistants (https://chatllm.abacus.ai/jHbDDlNWsd) and forward refinements are included in "/Testing"
+Testing of the prompts with different Web AI Assistants (https://chatllm.abacus.ai/nJqwvJZVQd) and forward refinements are included in "/Testing"
