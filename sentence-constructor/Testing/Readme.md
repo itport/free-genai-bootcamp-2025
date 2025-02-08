@@ -1,2 +1,2 @@
 
-Testing and refinements of the prompts in different Web Ai Assistants provided through https://chatllm.abacus.ai/jHbDDlNWsd (link provides first month free of charge, however you have to pay for the second month at the signup!) which is 10$/month with access to all best paid models.
+Testing and refinements of the prompts in different Web Ai Assistants provided through https://chatllm.abacus.ai/nJqwvJZVQd (link provides first month free of charge, however you have to pay for the second month at the signup!) which is 10$/month with access to all best paid models.
