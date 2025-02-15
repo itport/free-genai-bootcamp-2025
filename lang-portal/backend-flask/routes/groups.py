@@ -3,7 +3,7 @@ from flask_cors import cross_origin
 import json
 
 def load(app):
-  @app.route('/groups', methods=['GET'])
+  @app.route('/api/groups', methods=['GET'])
   @cross_origin()
   def get_groups():
     try:
@@ -58,7 +58,7 @@ def load(app):
     except Exception as e:
       return jsonify({"error": str(e)}), 500
 
-  @app.route('/groups/<int:id>', methods=['GET'])
+  @app.route('/api/groups/<int:id>', methods=['GET'])
   @cross_origin()
   def get_group(id):
     try:
@@ -83,7 +83,7 @@ def load(app):
     except Exception as e:
       return jsonify({"error": str(e)}), 500
 
-  @app.route('/groups/<int:id>/words', methods=['GET'])
+  @app.route('/api/groups/<int:id>/words', methods=['GET'])
   @cross_origin()
   def get_group_words(id):
     try:
@@ -156,7 +156,7 @@ def load(app):
       return jsonify({"error": str(e)}), 500
 
 
-  @app.route('/groups/<int:id>/study_sessions', methods=['GET'])
+  @app.route('/api/groups/<int:id>/study_sessions', methods=['GET'])
   @cross_origin()
   def get_group_study_sessions(id):
     try:
@@ -251,7 +251,7 @@ def load(app):
   # 
   # This endpoint retrieves words within a specific group in a raw, unpaginated format, suitable for exporting or bulk processing. It's different from the existing /groups/:id/words which provides paginated results.
   
-  @app.route('/groups/<int:id>/words/raw', methods=['GET'])
+  @app.route('/api/groups/<int:id>/words/raw', methods=['GET'])
   @cross_origin()
   def get_group_words_raw(id):
     try:
