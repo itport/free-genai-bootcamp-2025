@@ -155,7 +155,6 @@ def load(app):
     except Exception as e:
       return jsonify({"error": str(e)}), 500
 
-  # todo GET /groups/:id/words/raw
 
   @app.route('/groups/<int:id>/study_sessions', methods=['GET'])
   @cross_origin()
@@ -245,5 +244,48 @@ def load(app):
         'total_pages': total_pages,
         'current_page': page
       })
+    except Exception as e:
+      return jsonify({"error": str(e)}), 500
+    
+  # todo GET /groups/:id/words/raw
+  # 
+  # This endpoint retrieves words within a specific group in a raw, unpaginated format, suitable for exporting or bulk processing. It's different from the existing /groups/:id/words which provides paginated results.
+  
+  @app.route('/groups/<int:id>/words/raw', methods=['GET'])
+  @cross_origin()
+  def get_group_words_raw(id):
+    try:
+      cursor = app.db.cursor()
+
+      # Check if the group exists
+      cursor.execute('SELECT name FROM groups WHERE id = ?', (id,))
+      group = cursor.fetchone()
+      if not group:
+        return jsonify({"error": "Group not found"}), 404
+
+      # Query to fetch all words associated with the group, without pagination
+      cursor.execute('''
+      SELECT w.*
+      FROM words w
+      JOIN word_groups wg ON w.id = wg.word_id
+      WHERE wg.group_id = ?
+      ORDER BY w.kanji
+      ''', (id,))
+
+      words = cursor.fetchall()
+
+      # Format as a simple list of word dictionaries
+      words_data = []
+      for word in words:
+        words_data.append({
+          "id": word["id"],
+          "kanji": word["kanji"],
+          "romaji": word["romaji"],
+          "english": word["english"],
+          "parts": json.loads(word["parts"])  # Deserialize 'parts' from JSON
+        })
+
+      return jsonify(words_data)  # Return the raw list
+
     except Exception as e:
       return jsonify({"error": str(e)}), 500
