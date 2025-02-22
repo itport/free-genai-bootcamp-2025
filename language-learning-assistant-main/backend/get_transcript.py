@@ -66,9 +66,9 @@ class YouTubeTranscriptDownloader:
         Returns:
             bool: True if successful, False otherwise
         """
-        # Ensure transcripts directory exists
-        os.makedirs("./transcripts", exist_ok=True)
-        filename = f"./transcripts/{filename}.txt"
+        # Ensure translations directory exists
+        os.makedirs("./translations", exist_ok=True)
+        filename = f"./translations/{filename}.txt"
         
         try:
             with open(filename, 'w', encoding='utf-8') as f:

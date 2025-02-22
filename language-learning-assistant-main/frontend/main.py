@@ -12,6 +12,7 @@ import re
 
 from backend.chat import SambanovaChat
 from backend.get_transcript import YouTubeTranscriptDownloader
+from backend.video_downloader import YouTubeVideoDownloader
 
 
 # Page config
@@ -51,9 +52,10 @@ def render_sidebar():
             [
                 "1. Chat with DeepSeek-R1",
                 "2. Raw Transcript",
-                "3. Structured Data",
-                "4. RAG Implementation",
-                "5. Interactive Learning"
+                "3. Video to Subtitles",
+                "4. Structured Data",
+                "5. RAG Implementation",
+                "6. Interactive Learning"
             ]
         )
         
@@ -73,21 +75,28 @@ def render_sidebar():
             - Initial data examination
             """,
             
-            "3. Structured Data": """
+            "3. Video to Subtitles": """
+            **Current Focus:**
+            - Video download and processing
+            - Audio extraction
+            - Subtitle generation
+            """,
+            
+            "4. Structured Data": """
             **Current Focus:**
             - Text cleaning
             - Dialogue extraction
             - Data structuring
             """,
             
-            "4. RAG Implementation": """
+            "5. RAG Implementation": """
             **Current Focus:**
             - Bedrock embeddings
             - Vector storage
             - Context retrieval
             """,
             
-            "5. Interactive Learning": """
+            "6. Interactive Learning": """
             **Current Focus:**
             - Scenario generation
             - Audio synthesis
@@ -201,21 +210,41 @@ def render_transcript_stage():
         placeholder="Enter a Romanian lesson YouTube URL"
     )
     
-    # Download button and processing
+    # Download buttons and processing
     if url:
-        if st.button("Download Transcript"):
-            try:
-                downloader = YouTubeTranscriptDownloader()
-                transcript = downloader.get_transcript(url)
-                if transcript:
-                    # Store the raw transcript text in session state
-                    transcript_text = "\n".join([entry['text'] for entry in transcript])
-                    st.session_state.transcript = transcript_text
-                    st.success("Transcript downloaded successfully!")
-                else:
-                    st.error("No transcript found for this video.")
-            except Exception as e:
-                st.error(f"Error downloading transcript: {str(e)}")
+        col_download1, col_download2 = st.columns(2)
+        
+        with col_download1:
+            if st.button("Download Transcript"):
+                try:
+                    downloader = YouTubeTranscriptDownloader()
+                    transcript = downloader.get_transcript(url)
+                    if transcript:
+                        # Extract video ID and save transcript
+                        video_id = downloader.extract_video_id(url)
+                        if video_id and downloader.save_transcript(transcript, video_id):
+                            # Store the raw transcript text in session state
+                            transcript_text = "\n".join([entry['text'] for entry in transcript])
+                            st.session_state.transcript = transcript_text
+                            st.success(f"Transcript downloaded and saved as {video_id}.txt!")
+                        else:
+                            st.error("Failed to save the transcript.")
+                    else:
+                        st.error("No transcript found for this video.")
+                except Exception as e:
+                    st.error(f"Error downloading transcript: {str(e)}")
+        
+        with col_download2:
+            if st.button("Download Video"):
+                try:
+                    video_downloader = YouTubeVideoDownloader()
+                    video_path = video_downloader.download_video(url)
+                    if video_path:
+                        st.success(f"Video downloaded successfully to {video_path}!")
+                    else:
+                        st.error("Failed to download the video.")
+                except Exception as e:
+                    st.error(f"Error downloading video: {str(e)}")
 
     col1, col2 = st.columns(2)
     
@@ -228,7 +257,6 @@ def render_transcript_stage():
                 height=400,
                 disabled=True
             )
-    
         else:
             st.info("No transcript loaded yet")
     
@@ -245,6 +273,89 @@ def render_transcript_stage():
             st.metric("Total Lines", total_lines)
         else:
             st.info("Load a transcript to see statistics")
+
+def render_video_subtitles_stage():
+    """Render the video to subtitles stage"""
+    st.header("Video to Subtitles")
+    
+    # Add URL input field
+    url = st.text_input(
+        "YouTube URL",
+        placeholder="Enter a Romanian lesson YouTube URL"
+    )
+    
+    # Download buttons and processing
+    if url:
+        col_download1, col_download2 = st.columns(2)
+        
+        with col_download1:
+            if st.button("Download Transcript"):
+                try:
+                    downloader = YouTubeTranscriptDownloader()
+                    transcript = downloader.get_transcript(url)
+                    if transcript:
+                        # Extract video ID and save transcript
+                        video_id = downloader.extract_video_id(url)
+                        if video_id and downloader.save_transcript(transcript, video_id):
+                            # Store the raw transcript text in session state
+                            transcript_text = "\n".join([entry['text'] for entry in transcript])
+                            st.session_state.transcript = transcript_text
+                            st.success(f"Transcript downloaded and saved as {video_id}.txt!")
+                        else:
+                            st.error("Failed to save the transcript.")
+                    else:
+                        st.error("No transcript found for this video.")
+                except Exception as e:
+                    st.error(f"Error downloading transcript: {str(e)}")
+        
+        with col_download2:
+            if st.button("Download Video"):
+                try:
+                    with st.spinner("Downloading and processing video..."):
+                        video_downloader = YouTubeVideoDownloader()
+                        # First extract video info to show progress
+                        video_id = video_downloader.extract_video_id(url)
+                        if not video_id:
+                            st.error("Invalid YouTube URL or unable to extract video ID")
+                            return
+                            
+                        st.info(f"Processing video ID: {video_id}")
+                        video_path = video_downloader.download_video(url)
+                        
+                        if video_path:
+                            # Convert to absolute path if needed
+                            if not os.path.isabs(video_path):
+                                video_path = os.path.abspath(video_path)
+                            st.success("Video downloaded and converted to audio successfully!")
+                            st.session_state.audio_path = video_path
+                        else:
+                            # Display the specific error message from the backend
+                            st.error("Failed to download and process the video. Please check the following possible issues:\n" +
+                                    "1. Video availability and accessibility\n" +
+                                    "2. Audio format availability\n" +
+                                    "3. Disk space and permissions\n" +
+                                    "4. FFmpeg installation for audio conversion")
+                except Exception as e:
+                    st.error(f"Error downloading video: {str(e)}")
+    
+    if st.session_state.transcript:
+        st.text_area(
+            label="Video transcript",
+            value=st.session_state.transcript,
+            height=200,
+            disabled=True
+        )
+        col_a, col_b = st.columns(2)
+        with col_a:
+            st.button("Download video", use_container_width=True)
+            st.button("Upload for transcribe", use_container_width=True)
+            st.button("Check Status", use_container_width=True)
+        with col_b:
+            st.button("Save audio", use_container_width=True)
+            st.button("Start transcription", use_container_width=True)
+            st.button("Download subtitle", use_container_width=True)
+    else:
+        st.info("Please enter a YouTube URL and download the video for batch transcription.")
 
 def render_rag_stage():
     """Render the RAG implementation stage"""
@@ -299,19 +410,21 @@ def render_interactive_stage():
         st.info("Feedback will appear here")
 
 def main():
+    """Main application logic"""
     render_header()
     selected_stage = render_sidebar()
     
-    # Render appropriate stage
     if selected_stage == "1. Chat with DeepSeek-R1":
         render_chat_stage()
     elif selected_stage == "2. Raw Transcript":
         render_transcript_stage()
-    elif selected_stage == "3. Structured Data":
-        render_structured_stage()
-    elif selected_stage == "4. RAG Implementation":
+    elif selected_stage == "3. Video to Subtitles":
+        render_video_subtitles_stage()
+    elif selected_stage == "4. Structured Data":
+        render_structured_data_stage()
+    elif selected_stage == "5. RAG Implementation":
         render_rag_stage()
-    elif selected_stage == "5. Interactive Learning":
+    elif selected_stage == "6. Interactive Learning":
         render_interactive_stage()
     
     # Debug section at the bottom
