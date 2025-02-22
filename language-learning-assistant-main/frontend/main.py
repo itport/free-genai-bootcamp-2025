@@ -10,13 +10,14 @@ import json
 from collections import Counter
 import re
 
-from backend.chat import BedrockChat
+from backend.chat import SambanovaChat
+from backend.get_transcript import YouTubeTranscriptDownloader
 
 
 # Page config
 st.set_page_config(
-    page_title="Japanese Learning Assistant",
-    page_icon="🎌",
+    page_title="Romanian Learning Assistant",
+    page_icon="🇷🇴",
     layout="wide"
 )
 
@@ -28,14 +29,14 @@ if 'messages' not in st.session_state:
 
 def render_header():
     """Render the header section"""
-    st.title("🎌 Japanese Learning Assistant")
+    st.title("Romanian Learning Assistant")
     st.markdown("""
-    Transform YouTube transcripts into interactive Japanese learning experiences.
+    Transform YouTube transcripts into interactive Romanian learning experiences.
     
     This tool demonstrates:
-    - Base LLM Capabilities
+    - DeepSeek-R1 Language Model Integration
     - RAG (Retrieval Augmented Generation)
-    - Amazon Bedrock Integration
+    - Structured Learning Approach
     - Agent-based Learning Systems
     """)
 
@@ -48,7 +49,7 @@ def render_sidebar():
         selected_stage = st.radio(
             "Select Stage:",
             [
-                "1. Chat with Nova",
+                "1. Chat with DeepSeek-R1",
                 "2. Raw Transcript",
                 "3. Structured Data",
                 "4. RAG Implementation",
@@ -58,11 +59,11 @@ def render_sidebar():
         
         # Stage descriptions
         stage_info = {
-            "1. Chat with Nova": """
+            "1. Chat with DeepSeek-R1": """
             **Current Focus:**
-            - Basic Japanese learning
-            - Understanding LLM capabilities
-            - Identifying limitations
+            - Basic Romanian learning
+            - Advanced language understanding
+            - Interactive conversations
             """,
             
             "2. Raw Transcript": """
@@ -101,15 +102,15 @@ def render_sidebar():
 
 def render_chat_stage():
     """Render an improved chat interface"""
-    st.header("Chat with Nova")
+    st.header("Chat with DeepSeek-R1")
 
-    # Initialize BedrockChat instance if not in session state
-    if 'bedrock_chat' not in st.session_state:
-        st.session_state.bedrock_chat = BedrockChat()
+    # Initialize SambanovaChat instance if not in session state
+    if 'sambanova_chat' not in st.session_state:
+        st.session_state.sambanova_chat = SambanovaChat()
 
     # Introduction text
     st.markdown("""
-    Start by exploring Nova's base Japanese language capabilities. Try asking questions about Japanese grammar, 
+    Start by exploring DeepSeek-R1's Romanian language capabilities. Try asking questions about Romanian grammar, 
     vocabulary, or cultural aspects.
     """)
 
@@ -123,7 +124,7 @@ def render_chat_stage():
             st.markdown(message["content"])
 
     # Chat input area
-    if prompt := st.chat_input("Ask about Japanese language..."):
+    if prompt := st.chat_input("Ask about Romanian language..."):
         # Process the user input
         process_message(prompt)
 
@@ -131,11 +132,11 @@ def render_chat_stage():
     with st.sidebar:
         st.markdown("### Try These Examples")
         example_questions = [
-            "How do I say 'Where is the train station?' in Japanese?",
-            "Explain the difference between は and が",
-            "What's the polite form of 食べる?",
-            "How do I count objects in Japanese?",
-            "What's the difference between こんにちは and こんばんは?",
+            "How do I say 'Where is the train station?' in Romanian?",
+            "Explain the difference between 'sunt' and 'este'",
+            "What's the polite form of 'a mânca'?",
+            "How do I count objects in Romanian?",
+            "What's the difference between 'bună dimineața' and 'bună seara'?",
             "How do I ask for directions politely?"
         ]
         
@@ -151,36 +152,44 @@ def render_chat_stage():
             st.session_state.messages = []
             st.rerun()
 
-def process_message(message: str):
-    """Process a message and generate a response"""
-    # Add user message to state and display
-    st.session_state.messages.append({"role": "user", "content": message})
-    with st.chat_message("user", avatar="🧑‍💻"):
-        st.markdown(message)
+def process_message(prompt: str):
+    """Process a user message and generate a response"""
+    # Add user message to chat history
+    st.session_state.messages.append({"role": "user", "content": prompt})
 
-    # Generate and display assistant's response
+    # Create a placeholder for the assistant's response
     with st.chat_message("assistant", avatar="🤖"):
-        response = st.session_state.bedrock_chat.generate_response(message)
-        if response:
-            st.markdown(response)
-            st.session_state.messages.append({"role": "assistant", "content": response})
+        message_placeholder = st.empty()
+        full_response = ""
+
+        # Stream the response
+        for chunk in st.session_state.sambanova_chat.generate_stream(prompt):
+            full_response += chunk
+            # Show the complete response in the main message area
+            message_placeholder.markdown(full_response)
+
+        # Ensure the final complete response is displayed
+        message_placeholder.markdown(full_response)
+
+    # Add assistant's message to chat history
+    st.session_state.messages.append({"role": "assistant", "content": full_response})
 
 
 
 def count_characters(text):
-    """Count Japanese and total characters in text"""
+    """Count Romanian and total characters in text"""
     if not text:
         return 0, 0
         
-    def is_japanese(char):
+    def is_romanian(char):
         return any([
-            '\u4e00' <= char <= '\u9fff',  # Kanji
-            '\u3040' <= char <= '\u309f',  # Hiragana
-            '\u30a0' <= char <= '\u30ff',  # Katakana
+            char in 'ăâîșțĂÂÎȘȚ',  # Romanian special characters
+            'a' <= char.lower() <= 'z',  # Basic Latin alphabet
+            char.isspace() or char in ',.!?-'  # Common punctuation
         ])
     
-    jp_chars = sum(1 for char in text if is_japanese(char))
-    return jp_chars, len(text)
+    ro_chars = sum(1 for char in text if is_romanian(char))
+    return ro_chars, len(text)
 
 def render_transcript_stage():
     """Render the raw transcript stage"""
@@ -189,7 +198,7 @@ def render_transcript_stage():
     # URL input
     url = st.text_input(
         "YouTube URL",
-        placeholder="Enter a Japanese lesson YouTube URL"
+        placeholder="Enter a Romanian lesson YouTube URL"
     )
     
     # Download button and processing
@@ -232,26 +241,10 @@ def render_transcript_stage():
             
             # Display stats
             st.metric("Total Characters", total_chars)
-            st.metric("Japanese Characters", jp_chars)
+            st.metric("Romanian Characters", jp_chars)
             st.metric("Total Lines", total_lines)
         else:
             st.info("Load a transcript to see statistics")
-
-def render_structured_stage():
-    """Render the structured data stage"""
-    st.header("Structured Data Processing")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.subheader("Dialogue Extraction")
-        # Placeholder for dialogue processing
-        st.info("Dialogue extraction will be implemented here")
-        
-    with col2:
-        st.subheader("Data Structure")
-        # Placeholder for structured data view
-        st.info("Structured data view will be implemented here")
 
 def render_rag_stage():
     """Render the RAG implementation stage"""
@@ -260,7 +253,7 @@ def render_rag_stage():
     # Query input
     query = st.text_input(
         "Test Query",
-        placeholder="Enter a question about Japanese..."
+        placeholder="Enter a question about Romanian..."
     )
     
     col1, col2 = st.columns(2)
@@ -310,7 +303,7 @@ def main():
     selected_stage = render_sidebar()
     
     # Render appropriate stage
-    if selected_stage == "1. Chat with Nova":
+    if selected_stage == "1. Chat with DeepSeek-R1":
         render_chat_stage()
     elif selected_stage == "2. Raw Transcript":
         render_transcript_stage()

@@ -1,9 +1,16 @@
 from youtube_transcript_api import YouTubeTranscriptApi
 from typing import Optional, List, Dict
+import os
 
 
 class YouTubeTranscriptDownloader:
-    def __init__(self, languages: List[str] = ["ja", "en"]):
+    def __init__(self, languages: List[str] = ["ro", "en"]):
+        """Initialize YouTubeTranscriptDownloader with specified languages
+        
+        Args:
+            languages (List[str]): List of language codes to try when downloading transcripts.
+                                  Defaults to Romanian and English.
+        """
         self.languages = languages
 
     def extract_video_id(self, url: str) -> Optional[str]:
@@ -59,6 +66,8 @@ class YouTubeTranscriptDownloader:
         Returns:
             bool: True if successful, False otherwise
         """
+        # Ensure transcripts directory exists
+        os.makedirs("./transcripts", exist_ok=True)
         filename = f"./transcripts/{filename}.txt"
         
         try:
