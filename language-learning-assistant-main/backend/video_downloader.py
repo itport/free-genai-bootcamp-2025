@@ -8,19 +8,19 @@ class YouTubeVideoDownloader:
         # Ensure videos directory exists
         os.makedirs("./videos", exist_ok=True)
         
-        # Configure yt-dlp options
-        self.ydl_opts = {
-            'format': 'bestaudio[format_note!*=DRM][format_note!*=DRC]/bestaudio/best',  # Select best non-DRM/DRC audio
-            'outtmpl': os.path.join(os.path.abspath('./videos'), '%(id)s.%(ext)s'),  # Absolute path output template
+        # Configure base yt-dlp options
+        self.base_opts = {
             'quiet': True,  # Suppress output
             'no_warnings': True,  # Suppress warnings
             'extract_flat': False,  # Extract video info
+            'outtmpl': os.path.join(os.path.abspath('./videos'), '%(id)s.%(ext)s'),  # Absolute path output template
+        }
+        
+        # Configure audio-specific options
+        self.ydl_opts = {
+            **self.base_opts,
+            'format': 'bestaudio[format_note!*=DRM][format_note!*=DRC]/bestaudio/best',  # Select best non-DRM/DRC audio
             'keepvideo': True,  # Keep the original downloaded file
-        #    'postprocessors': [{
-        #        'key': 'FFmpegExtractAudio',
-        #        'preferredcodec': 'wav',  # Highest quality lossless format
-        #        'preferredquality': '192',  # Highest bitrate
-        #    }],
         }
         
     def extract_video_id(self, url: str) -> Optional[str]:
@@ -38,6 +38,55 @@ class YouTubeVideoDownloader:
                 return info.get('id')
         except Exception as e:
             print(f"Error extracting video ID: {str(e)}")
+            return None
+    
+    def download_audio(self, url: str, output_format: str = "mp3") -> Optional[str]:
+        """Download YouTube video and convert to specified audio format
+        
+        Args:
+            url (str): YouTube URL
+            output_format (str): Desired audio format (default: "mp3")
+            
+        Returns:
+            Optional[str]: Path to downloaded audio if successful, None otherwise
+        """
+        try:
+            # Extract video ID
+            video_id = self.extract_video_id(url)
+            if not video_id:
+                raise ValueError("Invalid video ID or URL - Please check if the video exists and is accessible")
+            
+            # Configure audio download options
+            audio_opts = {
+                **self.base_opts,
+                'format': 'bestaudio/best',
+                'postprocessors': [{
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': output_format,
+                    'preferredquality': '192',
+                }]
+            }
+            
+            # Download and convert audio
+            with yt_dlp.YoutubeDL(audio_opts) as ydl:
+                print("\nExtracting video information...")
+                try:
+                    info = ydl.extract_info(url)
+                    audio_path = os.path.join(os.path.abspath('./videos'), f"{video_id}.{output_format}")
+                except yt_dlp.utils.DownloadError as e:
+                    raise ValueError(f"Failed to download video: {str(e)}")
+                
+                # Ensure the file exists after download
+                if not os.path.exists(audio_path):
+                    raise ValueError("Download completed but file not found - Check disk space and permissions")
+                
+                return audio_path
+                
+        except ValueError as e:
+            print(f"Error: {str(e)}")
+            return None
+        except Exception as e:
+            print(f"Unexpected error during audio processing: {str(e)}")
             return None
     
     def download_video(self, url: str) -> Optional[str]:
@@ -132,7 +181,13 @@ def main():
         video_id = downloader.extract_video_id(url)
         if video_id:
             print(f"Extracted video ID: {video_id}")
-            audio_path = downloader.download_video(url)
+            # Ask for download type
+            download_type = input("Download as (1) Original format or (2) MP3? [1/2]: ").strip()
+            if download_type == "2":
+                audio_path = downloader.download_audio(url)
+            else:
+                audio_path = downloader.download_video(url)
+                
             if audio_path:
                 print(f"\nSuccess! Audio saved to: {audio_path}")
             else:

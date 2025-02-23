@@ -235,16 +235,16 @@ def render_transcript_stage():
                     st.error(f"Error downloading transcript: {str(e)}")
         
         with col_download2:
-            if st.button("Download Video"):
+            if st.button("Download Audio"):
                 try:
                     video_downloader = YouTubeVideoDownloader()
                     video_path = video_downloader.download_video(url)
                     if video_path:
-                        st.success(f"Video downloaded successfully to {video_path}!")
+                        st.success(f"Audio downloaded successfully to {video_path}!")
                     else:
-                        st.error("Failed to download the video.")
+                        st.error("Failed to download the audio.")
                 except Exception as e:
-                    st.error(f"Error downloading video: {str(e)}")
+                    st.error(f"Error downloading audio: {str(e)}")
 
     col1, col2 = st.columns(2)
     
@@ -309,9 +309,16 @@ def render_video_subtitles_stage():
                     st.error(f"Error downloading transcript: {str(e)}")
         
         with col_download2:
-            if st.button("Download Video"):
+            if st.button("Download audio"):
                 try:
                     with st.spinner("Downloading and processing video..."):
+                        # Add format selection
+                        format_option = st.radio(
+                            "Select format:",
+                            ["mp3", "original"],
+                            key="format_selection"
+                        )
+                        
                         video_downloader = YouTubeVideoDownloader()
                         # First extract video info to show progress
                         video_id = video_downloader.extract_video_id(url)
@@ -320,13 +327,18 @@ def render_video_subtitles_stage():
                             return
                             
                         st.info(f"Processing video ID: {video_id}")
-                        video_path = video_downloader.download_video(url)
+                        # Use download_audio for mp3, download_video for original
+                        if format_option == "mp3":
+                            video_path = video_downloader.download_audio(url)
+                        else:
+                            video_path = video_downloader.download_video(url)
                         
                         if video_path:
                             # Convert to absolute path if needed
                             if not os.path.isabs(video_path):
                                 video_path = os.path.abspath(video_path)
-                            st.success("Video downloaded and converted to audio successfully!")
+                            filename = os.path.basename(video_path)
+                            st.success(f"Video downloaded successfully as: {filename}\nLocation: {video_path}")
                             st.session_state.audio_path = video_path
                         else:
                             # Display the specific error message from the backend
