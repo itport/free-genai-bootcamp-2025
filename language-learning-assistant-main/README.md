@@ -27,30 +27,7 @@ A comprehensive tool for learning Romanian through YouTube videos, featuring tra
 - **Interactive Learning**: Practice Romanian through guided exercises
 - **RAG Implementation**: Ask questions about specific Romanian content with context retrieval
 
-## GitHub Upload Guide
 
-When uploading this project to GitHub, make sure to include the following directories and files:
-
-### Include These:
-
-- `frontend/` - Contains the Streamlit UI code
-- `backend/` - Contains the core functionality modules
-- `docs/` - Contains documentation including the user guide
-- `.gitignore` - Prevents sensitive and unnecessary files from being uploaded
-- `requirements.txt` - Lists all Python dependencies
-- `README.md` - Project documentation (this file)
-
-### Exclude These (already in .gitignore):
-
-- `videos/` - Contains downloaded videos
-- `transcripts/` - Contains downloaded transcripts
-- `audio/` - Contains extracted audio
-- Any `.env` files or files containing API keys
-- Any downloaded media files (mp3, mp4, etc.)
-- Any generated transcription files
-- Virtual environment directories (venv, env)
-- IDE configuration files (.vscode, .idea)
-- `__pycache__/` directories and `.pyc` files
 
 ## Setup Instructions
 
