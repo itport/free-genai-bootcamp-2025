@@ -6,6 +6,7 @@ A comprehensive tool for learning Romanian through YouTube videos, featuring tra
 
 - **AI-Powered Language Assistant**: Chat with DeepSeek-R1 for Romanian language assistance
 - **YouTube Integration**: Download videos, audio, and transcripts directly from YouTube URLs
+See the [Potential issue and workaroun](docs/direct_translation_issue.md) for detailed instructions on how to bypass the "No subtitles enabled for this video.
 - **Advanced Transcription**:
   - Multi-language support (Romanian, English, and other languages)
   - Speaker diarization (identify different speakers)
