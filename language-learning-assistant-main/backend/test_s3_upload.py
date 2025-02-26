@@ -17,9 +17,14 @@ def upload_to_s3(audio_file_path, bucket_name, s3_key=None):
         str: Presigned URL for the uploaded file
     """
     try:
-        # Initialize S3 client
-        s3_client = boto3.client('s3')
-
+        # Initialize S3 client with explicit configuration
+        s3_client = boto3.client(
+            's3',
+            region_name=os.getenv('AWS_REGION'),
+            aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+            aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY')
+        )
+        
         # If no S3 key provided, use the filename
         if not s3_key:
             s3_key = f"audio/{Path(audio_file_path).name}"

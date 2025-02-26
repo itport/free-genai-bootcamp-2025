@@ -51,7 +51,8 @@ def request_transcription(url, organization_name=None, api_key=None):
             "input": {
                 "url": url,
                 "return_as_file": True,
-                "language_code": "en",
+                "language_code": "jp",
+#                "language_code": "jp",
                 "sentence_level_timestamps": False,
                 "word_level_timestamps": False,
                 "diarization": False,
