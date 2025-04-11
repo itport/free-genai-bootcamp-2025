@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Bread -->
+  <ellipse cx="16" cy="16" rx="12" ry="8" fill="#F5DEB3" />
+  <line x1="10" y1="14" x2="22" y2="14" stroke="#CD853F" stroke-width="1" />
+  <line x1="10" y1="18" x2="22" y2="18" stroke="#CD853F" stroke-width="1" />
+</svg>
