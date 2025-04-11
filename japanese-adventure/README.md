@@ -35,7 +35,7 @@ Players navigate through different rooms, interact with characters, collect item
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/japanese-adventure.git
+   git clone https://github.com/itport/japanese-adventure.git
    cd japanese-adventure
    ```
 
