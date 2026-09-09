@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import StudySessionsTable, { type StudySessionSortKey } from '../components/StudySessionsTable'
-import Pagination from '../components/Pagination'
 import { type StudySession, fetchStudySessions } from '../services/api'
 
 export default function Sessions() {
   const [sessions, setSessions] = useState<StudySession[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [sortKey, setSortKey] = useState<StudySessionSortKey>('startTime')
+  const [sortKey, setSortKey] = useState<StudySessionSortKey>('start_time')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
@@ -48,23 +47,18 @@ export default function Sessions() {
   }
 
   const sortedSessions = [...sessions].sort((a, b) => {
-    const aValue = a[sortKey.toLowerCase() as keyof StudySession]
-    const bValue = b[sortKey.toLowerCase() as keyof StudySession]
+    const aValue = a[sortKey]
+    const bValue = b[sortKey]
     if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1
     if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1
     return 0
   })
 
-  const paginatedSessions = sortedSessions.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  )
-
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Study Sessions</h1>
       <StudySessionsTable
-        sessions={paginatedSessions}
+        sessions={sortedSessions}
         sortKey={sortKey}
         sortDirection={sortDirection}
         onSort={handleSort}

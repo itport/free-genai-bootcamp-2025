@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useNavigation } from '@/context/NavigationContext'
-import StudySessionsTable from '@/components/StudySessionsTable'
+import StudySessionsTable, { type StudySessionSortKey } from '@/components/StudySessionsTable'
 import Pagination from '@/components/Pagination'
+import { API_BASE_URL } from '@/services/api'
 
 type Session = {
   id: number
@@ -39,6 +40,8 @@ export default function StudyActivityShow() {
   const [activity, setActivity] = useState<StudyActivity | null>(null)
   const [sessionData, setSessionData] = useState<PaginatedSessions | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
+  const [sortKey, setSortKey] = useState<StudySessionSortKey>('start_time')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -49,7 +52,7 @@ export default function StudyActivityShow() {
       setLoading(true)
       setError(null)
       try {
-        const response = await fetch(`http://localhost:5000/api/study-activities/${id}`)
+        const response = await fetch(`${API_BASE_URL}/api/study-activities/${id}`)
         if (!response.ok) {
           throw new Error('Failed to fetch study activity')
         }
@@ -59,28 +62,13 @@ export default function StudyActivityShow() {
         
         // Fetch sessions for the current page
         const sessionsResponse = await fetch(
-          `http://localhost:5000/api/study-activities/${id}/sessions?page=${currentPage}&per_page=${ITEMS_PER_PAGE}`
+          `${API_BASE_URL}/api/study-activities/${id}/sessions?page=${currentPage}&per_page=${ITEMS_PER_PAGE}`
         )
         if (!sessionsResponse.ok) {
           throw new Error('Failed to fetch sessions')
         }
-        const sessionsData = await sessionsResponse.json()
-        setSessionData({
-          items: sessionsData.items.map((item: any) => ({
-            id: item.id,
-            group_name: item.group_name,
-            group_id: item.group_id,
-            activity_id: item.activity_id,
-            activity_name: item.activity_name,
-            start_time: item.start_time,
-            end_time: item.end_time,
-            review_items_count: item.review_items_count
-          })),
-          total: sessionsData.total,
-          page: sessionsData.page,
-          per_page: sessionsData.per_page,
-          total_pages: sessionsData.total_pages
-        })
+        const sessionsData: PaginatedSessions = await sessionsResponse.json()
+        setSessionData(sessionsData)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred')
       } finally {
@@ -97,6 +85,15 @@ export default function StudyActivityShow() {
       setCurrentStudyActivity(null)
     }
   }, [setCurrentStudyActivity])
+
+  const handleSort = (key: StudySessionSortKey) => {
+    if (key === sortKey) {
+      setSortDirection((current) => current === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortKey(key)
+      setSortDirection('asc')
+    }
+  }
 
   if (loading) {
     return <div className="text-center py-4">Loading...</div>
@@ -144,7 +141,16 @@ export default function StudyActivityShow() {
       {sessionData && sessionData.items.length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-4">Study Sessions</h2>
-          <StudySessionsTable sessions={sessionData.items} />
+          <StudySessionsTable
+            sessions={[...sessionData.items].sort((a, b) => {
+              if (a[sortKey] < b[sortKey]) return sortDirection === 'asc' ? -1 : 1
+              if (a[sortKey] > b[sortKey]) return sortDirection === 'asc' ? 1 : -1
+              return 0
+            })}
+            sortKey={sortKey}
+            sortDirection={sortDirection}
+            onSort={handleSort}
+          />
           {sessionData.total_pages > 1 && (
             <div className="mt-4">
               <Pagination

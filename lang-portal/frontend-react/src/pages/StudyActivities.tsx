@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import StudyActivity from '@/components/StudyActivity'
+import { API_BASE_URL } from '@/services/api'
 
 type ActivityCard = {
   id: number
@@ -14,7 +15,7 @@ export default function StudyActivities() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/study-activities')
+    fetch(`${API_BASE_URL}/api/study-activities`)
       .then(response => {
         if (!response.ok) {
           throw new Error('Failed to fetch study activities')

@@ -34,11 +34,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }
 
-  // Initial theme setup
-  useEffect(() => {
-    updateTheme(theme)
-  }, [])
-
   // Effect for handling theme changes
   useEffect(() => {
     updateTheme(theme)

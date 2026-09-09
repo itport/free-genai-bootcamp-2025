@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useTheme } from '@/components/theme-provider'
+import { API_BASE_URL } from '@/services/api'
 
 export default function Settings() {
   const { theme, setTheme } = useTheme()
@@ -9,7 +10,7 @@ export default function Settings() {
   const handleReset = async () => {
     if (resetConfirmation.toLowerCase() === 'reset me') {
       try {
-        const response = await fetch('http://localhost:5000/api/study-sessions/reset', {
+        const response = await fetch(`${API_BASE_URL}/api/study-sessions/reset`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

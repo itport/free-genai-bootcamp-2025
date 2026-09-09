@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5000';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000';
 
 // Group types
 export interface Group {
@@ -105,10 +105,7 @@ export interface GroupWordsResponse {
 }
 
 export const fetchGroupDetails = async (
-  groupId: number,
-  page: number = 1,
-  sortBy: string = 'kanji',
-  order: 'asc' | 'desc' = 'asc'
+  groupId: number
 ): Promise<GroupDetails> => {
   const response = await fetch(`${API_BASE_URL}/api/groups/${groupId}`);
   if (!response.ok) {
@@ -124,7 +121,7 @@ export const fetchGroupWords = async (
   order: 'asc' | 'desc' = 'asc'
 ): Promise<GroupWordsResponse> => {
   const response = await fetch(
-    `${API_BASE_URL}/groups/${groupId}/api/words?page=${page}&sort_by=${sortBy}&order=${order}`
+    `${API_BASE_URL}/api/groups/${groupId}/words?page=${page}&sort_by=${sortBy}&order=${order}`
   );
   if (!response.ok) {
     throw new Error('Failed to fetch group words');
@@ -161,7 +158,7 @@ export const createStudySession = async (
   groupId: number,
   studyActivityId: number
 ): Promise<{ session_id: number }> => {
-  const response = await fetch(`${API_BASE_URL}/study_sessions`, {
+  const response = await fetch(`${API_BASE_URL}/api/study-sessions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -181,12 +178,17 @@ export const submitStudySessionReview = async (
   sessionId: number,
   reviews: WordReview[]
 ): Promise<void> => {
-  const response = await fetch(`${API_BASE_URL}/study_sessions/${sessionId}/review`, {
+  const response = await fetch(`${API_BASE_URL}/api/study-sessions/${sessionId}/review`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ reviews }),
+    body: JSON.stringify({
+      review_items: reviews.map((review) => ({
+        word_id: review.word_id,
+        correct: review.is_correct,
+      })),
+    }),
   });
   if (!response.ok) {
     throw new Error('Failed to submit study session review');
@@ -214,7 +216,7 @@ export async function fetchStudySessions(
   return response.json();
 }
 
-export interface StudySessionsResponse {
+export interface GroupStudySessionsResponse {
   study_sessions: StudySession[];
   total_pages: number;
   current_page: number;
@@ -225,9 +227,9 @@ export async function fetchGroupStudySessions(
   page: number = 1,
   sortBy: string = 'created_at',
   order: 'asc' | 'desc' = 'desc'
-): Promise<StudySessionsResponse> {
+): Promise<GroupStudySessionsResponse> {
   const response = await fetch(
-    `${API_BASE_URL}/groups/${groupId}/study_sessions?page=${page}&sort_by=${sortBy}&order=${order}`
+    `${API_BASE_URL}/api/groups/${groupId}/study_sessions?page=${page}&sort_by=${sortBy}&order=${order}`
   );
   if (!response.ok) {
     throw new Error('Failed to fetch group study sessions');

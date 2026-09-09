@@ -149,9 +149,6 @@ def load(app):
     except Exception as e:
       return jsonify({"error": str(e)}), 500
 
-  # todo POST /study_sessions/:id/review
-  # This endpoint records the results of a review within a study session. It receives a list of word review items, each containing the word ID, whether it was answered correctly, and (optionally) a timestamp.
-  
   @app.route('/api/study-sessions/<int:id>/review', methods=['POST'])
   @cross_origin()
   def record_review_results(id):
@@ -164,7 +161,7 @@ def load(app):
             return jsonify({"error": "Study session not found"}), 404
 
         # Get review data from the request body
-        data = request.get_json()
+        data = request.get_json(silent=True) or {}
         review_items = data.get('review_items')  # Expecting a list
 
         if not review_items or not isinstance(review_items, list):
@@ -193,10 +190,7 @@ def load(app):
                 VALUES (?, ?, ?, ?)
             ''', (word_id, id, int(correct), created_at))  # Convert correct to int (0 or 1)
 
-        app.db.commit()
-
         # Update correct_count and wrong_count in word_reviews table
-        # This is done *after* inserting all review items to avoid partial updates.
         for item in review_items:
             word_id = item.get('word_id')
             correct = item.get('correct')
@@ -217,9 +211,6 @@ def load(app):
         app.db.get().rollback()
         return jsonify({"error": str(e)}), 500
 
-  # todo /study_sessions POST
-  # This endpoint creates a new study session. It receives the group ID and study activity ID, and records the start time (using the current server time).
-  
   @app.route('/api/study-sessions', methods=['POST'])
   @cross_origin()
   def create_study_session():
@@ -227,7 +218,7 @@ def load(app):
         cursor = app.db.cursor()
 
         # Get data from the request body (expecting JSON)
-        data = request.get_json()
+        data = request.get_json(silent=True) or {}
         group_id = data.get('group_id')
         study_activity_id = data.get('study_activity_id')
 
@@ -259,7 +250,7 @@ def load(app):
         app.db.commit()  # Commit the transaction
 
         # Return the ID of the created session
-        return jsonify({"id": session_id}), 201  # 201 Created status code
+        return jsonify({"session_id": session_id}), 201
 
     except Exception as e:
         app.db.get().rollback()  # Rollback in case of error.
