@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS word_reviews (
+  word_id INTEGER PRIMARY KEY,
+  correct_count INTEGER DEFAULT 0,
+  wrong_count INTEGER DEFAULT 0,
+  last_reviewed TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (word_id) REFERENCES words(id)
+);

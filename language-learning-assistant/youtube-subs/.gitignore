@@ -1,0 +1,20 @@
+/vendor/
+/composer.phar
+composer.lock
+
+# Client secrets
+client_secret*.json
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.idea/
+.vscode/
+*.code-workspace
+
+# PHP runtime files
+*.log
+.php_cs.cache
+.phpunit.result.cache
